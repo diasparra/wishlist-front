@@ -21,4 +21,26 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['cypress/**/*.ts', 'cypress.config.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        cy: 'readonly',
+        Cypress: 'readonly',
+        before: 'readonly',
+        beforeEach: 'readonly',
+        after: 'readonly',
+        afterEach: 'readonly',
+        context: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        assert: 'readonly',
+      },
+    },
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

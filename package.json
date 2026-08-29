@@ -16,7 +16,11 @@
     "format:check": "prettier --check .",
     "backend": "npx json-server db.json --watch",
     "db:generate": "node scripts/generate-db.js",
-    "db:generate:pages": "node scripts/generate-db.js 10 --out public/todos.json --format array"
+    "db:generate:pages": "node scripts/generate-db.js --format array --collection members --out public/members.json && node scripts/generate-db.js --format array --collection wishes --out public/wishes.json",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "e2e": "node scripts/generate-db.js && start-server-and-test 'npm run backend' http://localhost:3000/members 'npm run dev' http://localhost:5173 'npm run cy:run'",
+    "e2e:demo": "npm run db:generate:pages && npm run build && start-server-and-test 'npm run preview -- --port 4173 --strictPort' http://localhost:4173 'cypress run --config baseUrl=http://localhost:4173,specPattern=cypress/demo/**/*.cy.ts'"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -28,12 +32,14 @@
     "json-server": "^1.0.0-beta.15",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.6.0",
     "@tanstack/eslint-plugin-query": "^5.101.4",
+    "@testing-library/cypress": "^10.1.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.13.3",
@@ -41,6 +47,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "@vitest/coverage-v8": "^4.1.11",
+    "cypress": "^15.21.1",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -48,6 +55,7 @@
     "globals": "^17.7.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.9.6",
+    "start-server-and-test": "^2.1.5",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.65.0",
     "vite": "^8.2.0",

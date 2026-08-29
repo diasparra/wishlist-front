@@ -1,20 +1,50 @@
 import { z } from 'zod'
 
-export const TodoSchema = z.object({
+export const PRIORITIES = ['low', 'medium', 'high'] as const
+
+export const PrioritySchema = z.enum(PRIORITIES)
+
+export const MemberSchema = z.object({
   id: z.string(),
-  title: z.string(),
-  date: z.string(),
-  checked: z.boolean().optional(),
+  name: z.string(),
+  birthday: z.string().optional(), // MM-DD
 })
 
-export const CreateTodoSchema = z.object({
+export const WishSchema = z.object({
+  id: z.string(),
+  memberId: z.string(),
   title: z.string(),
-  date: z.string(),
+  url: z.string().optional(),
+  notes: z.string().optional(),
+  price: z.string().optional(),
+  priority: PrioritySchema.optional(),
+  createdAt: z.string(),
+  reservedBy: z.string().nullable().optional(),
+  reservedAt: z.string().nullable().optional(),
 })
 
-export const UpdateTodoSchema = z.object({
+// Accepts a real URL, an empty string (optional field left blank), or nothing.
+const OptionalUrl = z.union([z.url(), z.literal('')]).optional()
+
+export const CreateWishSchema = z.object({
+  memberId: z.string(),
+  title: z.string().min(1),
+  url: OptionalUrl,
+  notes: z.string().optional(),
+  price: z.string().optional(),
+  priority: PrioritySchema.optional(),
+})
+
+export const UpdateWishSchema = z.object({
   id: z.string(),
-  title: z.string().optional(),
-  date: z.string().optional(),
-  checked: z.boolean().optional(),
+  title: z.string().min(1).optional(),
+  url: OptionalUrl,
+  notes: z.string().optional(),
+  price: z.string().optional(),
+  priority: PrioritySchema.optional(),
+})
+
+export const ReserveSchema = z.object({
+  id: z.string(),
+  reservedBy: z.string().nullable(),
 })

@@ -8,6 +8,9 @@ export default defineConfig(({ command }) => ({
   test: {
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
+    // Vitest owns the frontend suite only. The `api/` package has its own
+    // `node:test` suite (`cd api && npm test`); Cypress specs run separately.
+    include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
@@ -18,6 +21,9 @@ export default defineConfig(({ command }) => ({
         'src/**/*.test.{ts,tsx}',
         'src/**/*.css',
         'src/assets/**',
+        'cypress/**',
+        'scripts/**',
+        '*.config.{js,ts}',
       ],
       thresholds: {
         lines: 80,

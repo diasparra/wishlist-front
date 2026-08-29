@@ -16,6 +16,13 @@ coverage
 # Generated mock backend data
 db.json
 public/todos.json
+public/members.json
+public/wishes.json
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
 
 # Editor directories and files
 .vscode/*

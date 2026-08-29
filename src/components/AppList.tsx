@@ -7,6 +7,7 @@ export interface AppListItem {
   id: string
   title: ReactNode
   icon?: ReactNode
+  disabled?: boolean
   onClick?: (id: string) => void
 }
 
@@ -20,7 +21,10 @@ export default function AppList({ items }: Props) {
       {items.map((item) => (
         <ListItem key={item.id}>
           {item.icon && (
-            <IconButton onClick={() => item.onClick && item.onClick(item.id)}>
+            <IconButton
+              disabled={item.disabled}
+              onClick={() => item.onClick && item.onClick(item.id)}
+            >
               {item.icon}
             </IconButton>
           )}
