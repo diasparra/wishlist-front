@@ -16,6 +16,13 @@ coverage
 # Generated mock backend data
 db.json
 public/todos.json
+public/members.json
+public/wishes.json
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
 
 # Editor directories and files
 .vscode/*
@@ -29,3 +36,7 @@ public/todos.json
 *.sw?
 
 .env.*
+
+# The vendored backend keeps its own env handling (api/.gitignore); its
+# committed template must survive the frontend's blanket .env.* rule.
+!api/.env.example

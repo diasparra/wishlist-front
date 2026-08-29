@@ -1,112 +1,116 @@
-# React + TypeScript + Vite
+# Family wishlist
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A shared wishlist for a family: everyone picks their name, keeps a list of things
+they want (with links, notes, price), and can browse everyone else's lists — no
+occasion, a wish is for any moment. On someone else's list you can quietly mark a
+gift as **"I'll get this"** — the reservation is visible to the rest of the
+family but **never to the person who wants it**, so surprises stay surprises.
 
-Currently, two official plugins are available:
+Built with React + TypeScript + Vite + MUI + TanStack Query + Zod.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Flow
 
-## React Compiler
+1. **Family password gate** – one shared passphrase unlocks the app on a device
+   (`VITE_FAMILY_PASSWORD`, remembered in `localStorage`). Client-side only; the
+   self-hosted API adds an optional server-side bearer token (`API_TOKEN`). The
+   read-only demo skips this step.
+2. **Pick your name** – choose your family member; remembered in `localStorage`.
+   "Switch person" / "Lock" from the overview reset these (no "Lock" in the demo).
+3. **Overview** – a card per member linking to their list.
+4. **A list** – your own list is editable (add / edit / delete) and shows no
+   reservation state; another member's list shows their wishes with a
+   reserve / release control.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Data model
+
+`db.json` holds two collections:
+
+- `members`: `{ id, name, birthday? }` — `birthday` is `MM-DD`
+- `wishes`: `{ id, memberId, title, url?, notes?, price?, priority?, createdAt, reservedBy, reservedAt }` — `reservedBy` is a member id or `null`
+
+The owner-can't-see-reservations rule lives in one place —
+`wishesFor(memberId)` in `src/providers/WishlistProvider.tsx` strips
+`reservedBy` / `reservedAt` when the list belongs to the current viewer.
 
 ## API configuration & build modes
 
-The API base URL is driven by Vite's mode system (`.env.<mode>` + `import.meta.env`):
+The data source is driven by Vite's mode system (`.env.<mode>` +
+`import.meta.env`):
 
-| Mode                 | Command                             | `VITE_API_URL`                             | `VITE_READONLY` | Behavior                                                                      |
-| -------------------- | ----------------------------------- | ------------------------------------------ | --------------- | ----------------------------------------------------------------------------- |
-| development          | `npm run dev` (+ `npm run backend`) | `http://localhost:3000`                    | `false`         | Full read/write against local json-server                                     |
-| production (default) | `npm run build`                     | `todos.json` (resolved against `BASE_URL`) | `true`          | Static read-only demo for GitHub Pages; run `npm run db:generate:pages` first |
-| external             | `npm run build:external`            | placeholder URL                            | `false`         | Scaffold for a future real backend; edit `.env.external` when the URL exists  |
+| Mode                 | Command                             | Resources                                | `VITE_READONLY` | Behavior                                                          |
+| -------------------- | ----------------------------------- | ---------------------------------------- | --------------- | ----------------------------------------------------------------- |
+| development          | `npm run dev` (+ `npm run backend`) | `http://localhost:3000/{members,wishes}` | `false`         | Full read/write against local json-server                         |
+| production (default) | `npm run build`                     | `{members,wishes}.json` under `BASE_URL` | `true`          | Static read-only demo for GitHub Pages (no gate, banner)          |
+| external             | `npm run build:external`            | `VITE_API_URL` (the `api/` backend)      | `false`         | Full read/write against the self-hosted API — see `.env.external` |
 
-Seed data (same faker-based generator for both):
+- `VITE_FAMILY_PASSWORD` – required in every mode. The read-only demo skips the
+  gate entirely, so its value there is irrelevant.
+- `VITE_API_TOKEN` – optional. When set, every API request carries
+  `Authorization: Bearer <token>`; must match `API_TOKEN` on the backend. Leave
+  empty for json-server / the demo.
 
-- `npm run db:generate` – writes root `db.json` (json-server format) for local dev/Docker
-- `npm run db:generate:pages` – writes `public/todos.json` (flat array) for the GitHub Pages demo
+Seed data (faker-based, deterministic):
 
-CI runs `npm run db:generate:pages` before `npm run build` so the deployed Pages bundle always ships fresh demo data.
+- `npm run db:generate` – writes root `db.json` (json-server format)
+- `npm run db:generate:pages` – writes `public/members.json` + `public/wishes.json`
+  (flat arrays) for the GitHub Pages demo
+
+CI runs `db:generate:pages` before `npm run build` so the deployed bundle ships
+fresh demo data.
+
+## Tests
+
+- `npm run test` / `npm run coverage` – Vitest unit + component tests (co-located
+  `*.test.tsx`). CI enforces 80% lines/statements/functions, 75% branches.
+- `npm run e2e` – Cypress against the json-server dev stack. Boots json-server +
+  the dev server via `start-server-and-test`, re-seeds `db.json` from
+  `cypress/fixtures/seed.json` before each spec. Interactive: run `npm run backend`
+  and `npm run dev`, then `npm run cy:open`.
+- `npm run e2e:demo` – builds the read-only bundle, serves it with `vite preview`,
+  and runs `cypress/demo/demo-readonly.cy.ts` (no gate, banner, no write controls).
+- `cd api && npm test` – the backend's own `node:test` suite (pg-mem, no DB).
+
+The two E2E specs that pin the core rule: `cypress/e2e/surprise-hidden.cy.ts`
+(owner never sees a claim on their own list) and `cypress/e2e/reserve.cy.ts`
+(claim / release / can't release someone else's claim).
 
 ## Docker
 
-Build the image:
-
 ```sh
-docker build -t vite-react-starter .
+docker compose up --build
 ```
 
-Run it detached, mapping container port 80 to a host port (8080 here):
+Front end on http://localhost:8080, json-server on http://localhost:3000. The
+image is built with `npm run build:development` so the container targets the
+local `backend` service rather than the read-only Pages config.
 
-```sh
-docker run -d --name vite-react-starter -p 8080:80 vite-react-starter
-```
+## Deploy
 
-The app is then available at http://localhost:8080. Stop and remove the container with:
+### 1. Read-only demo → GitHub Pages
 
-```sh
-docker rm -f vite-react-starter
-```
+`.github/workflows/ci.yml` builds and publishes the `production` (read-only)
+bundle on every push to `main` (and via **Run workflow**). It writes
+`.env.production`, runs `db:generate:pages`, `npm run build`, and deploys with
+`actions/deploy-pages`. Nothing else to do — the demo skips the password gate and
+shows a "read-only demo" banner.
 
-The image is built with `npm run build:development`, not the bare `npm run build`, so the Dockerized front end still targets the local `backend` service on `http://localhost:3000` instead of the read-only GitHub Pages config (see `docker-compose.yaml`).
+### 2. Writable app → self-hosted API on Coolify
 
-## Expanding the ESLint configuration
+The backend lives in [`api/`](api/README.md): a small Fastify + Postgres service
+implementing the exact endpoints `src/queries/index.ts` calls.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Deploy `api/` on Coolify (its README has the click-by-click: a PostgreSQL
+   resource + a Dockerfile app with `DATABASE_URL`, `CORS_ORIGIN`,
+   `SEED_MEMBERS`, optional `API_TOKEN`). Migrations + seed run on deploy.
+2. Point this frontend at it — edit `.env.external`:
+   ```
+   VITE_API_URL=https://<api-domain>     # no trailing slash
+   VITE_READONLY=false
+   VITE_FAMILY_PASSWORD=<family passphrase>
+   VITE_API_TOKEN=<matches API_TOKEN, or empty>
+   ```
+3. `npm run build:external` and deploy `dist/` to any static host (Netlify,
+   Vercel, Coolify static, …). Set `CORS_ORIGIN` on the API to that host's origin.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The family-password check is still client-side (`SessionProvider`). `API_TOKEN`
+is the server-side guard for a self-hosted instance.

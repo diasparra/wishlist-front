@@ -1,6 +1,21 @@
 import { z } from 'zod'
-import { TodoSchema, UpdateTodoSchema } from '../schemas'
+import {
+  CreateWishSchema,
+  MemberSchema,
+  PrioritySchema,
+  ReserveSchema,
+  UpdateWishSchema,
+  WishSchema,
+} from '../schemas'
 
-export type TodoDTO = z.infer<typeof TodoSchema>
+export type MemberDTO = z.infer<typeof MemberSchema>
 
-export type UpdateTodoDTO = z.infer<typeof UpdateTodoSchema>
+export type WishDTO = z.infer<typeof WishSchema>
+
+export type CreateWishDTO = z.infer<typeof CreateWishSchema>
+
+export type UpdateWishDTO = z.infer<typeof UpdateWishSchema>
+
+export type ReserveDTO = z.infer<typeof ReserveSchema>
+
+export type Priority = z.infer<typeof PrioritySchema>

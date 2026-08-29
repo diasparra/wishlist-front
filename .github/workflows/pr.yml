@@ -70,6 +70,39 @@ jobs:
       - name: Test
         run: npm run coverage
 
+  e2e:
+    name: E2E
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Cypress binary
+        run: npx cypress install
+
+      - name: Run end-to-end tests
+        run: npm run e2e
+
+      - name: Upload Cypress artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
+          if-no-files-found: ignore
+
   build:
     name: Build
     needs: [test]
@@ -88,7 +121,7 @@ jobs:
         run: npm ci
 
       - name: Write production env
-        run: printf 'VITE_API_URL=todos.json\nVITE_READONLY=true\n' > .env.production
+        run: printf 'VITE_API_URL=.\nVITE_READONLY=true\nVITE_FAMILY_PASSWORD=noel\n' > .env.production
 
       - name: Generate static demo data
         run: npm run db:generate:pages
