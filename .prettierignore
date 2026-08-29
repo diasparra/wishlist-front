@@ -4,3 +4,6 @@ node_modules
 coverage
 package-lock.json
 .claude
+
+# Vendored backend — formatted in its own repo (wishlist-back), not here
+api

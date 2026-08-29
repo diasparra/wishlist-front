@@ -19,8 +19,8 @@
     "db:generate:pages": "node scripts/generate-db.js --format array --collection members --out public/members.json && node scripts/generate-db.js --format array --collection wishes --out public/wishes.json",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "e2e": "node scripts/generate-db.js && start-server-and-test 'npm run backend' http://localhost:3000/members 'npm run dev' http://localhost:5173 'npm run cy:run'",
-    "e2e:demo": "npm run db:generate:pages && npm run build && start-server-and-test 'npm run preview -- --port 4173 --strictPort' http://localhost:4173 'cypress run --config baseUrl=http://localhost:4173,specPattern=cypress/demo/**/*.cy.ts'"
+    "e2e": "node scripts/generate-db.js && start-server-and-test 'npm run backend' http-get://localhost:3000/members 'npm run dev' http-get://localhost:5173 'npm run cy:run'",
+    "e2e:demo": "npm run db:generate:pages && npm run build && start-server-and-test 'npm run preview -- --port 4173 --strictPort' http-get://localhost:4173 'cypress run --config baseUrl=http://localhost:4173,specPattern=cypress/demo/**/*.cy.ts'"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

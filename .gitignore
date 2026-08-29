@@ -36,3 +36,7 @@ cypress/downloads/
 *.sw?
 
 .env.*
+
+# The vendored backend keeps its own env handling (api/.gitignore); its
+# committed template must survive the frontend's blanket .env.* rule.
+!api/.env.example
